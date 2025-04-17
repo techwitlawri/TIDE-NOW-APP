@@ -1,0 +1,66 @@
+To-Do App
+A simple and interactive To-Do list app built using Flask for the backend and HTML/CSS for the frontend. Users can add, edit, mark tasks as completed, and delete tasks. The app also supports due dates and displays tasks with a clean, user-friendly interface.
+
+Features
+1) Add new tasks
+
+2) Edit existing tasks
+
+3) Mark tasks as completed
+
+4) Delete tasks
+
+5) View tasks with due dates
+
+6) Task status updates (Completed/Incomplete)
+
+7) Simple, clean UI with hover effects and icons for buttons
+
+Technologies Used
+I. Backend: Flask (Python)
+
+II. Frontend: HTML, CSS (Styled with Flexbox)
+
+III. Database: SQLite (via SQLAlchemy ORM)
+
+IV. JavaScript: Used for handling task completion status and delete functionality
+
+Installation
+Prerequisites
+Make sure you have Python installed. You can download it from here.
+
+Steps to Set Up
+Clone the repository to your local machine:
+git clone https://github.com/techwitlawri/TIDE-NOW-APP
+cd your-TIDE-NOW-APP
+
+
+Create and activate a virtual environment:
+
+python3 -m venv venv
+source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+
+Install the required dependencies:
+pip install -r requirements.txt
+
+
+Initialize the database (this will create the app.db file):
+
+python
+>>> from app import db
+>>> db.create_all()
+
+Run the app:
+python app.py
+
+Open your browser and visit http://127.0.0.1:5000/ to see the app in action.
+
+Usage
+- When you visit the home page, you can add tasks using the form.
+
+- You can edit or delete tasks with the provided buttons.
+
+- Tasks marked as completed will be crossed out.
+
+Contributing
+If you want to contribute to this project, feel free to fork the repository, make your changes, and submit a pull request. Please ensure your code adheres to the coding style and includes appropriate tests.
