@@ -1,4 +1,4 @@
-from flask import Flask , request , jsonify
+from flask import Flask , request , jsonify , render_template, redirect,url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -53,8 +53,8 @@ class Task(db.Model):
             'title' : self.title,
             'description': self.description,
             'completed': self.completed,
-            'created_at': self.created_at,
-            'due_date' : self.due_date
+            'created_at': self.created_at.strftime("%Y-%m-%d %H:%M:%S") if self.created_at else None,
+            'due_date': self.due_date.strftime("%Y-%m-%d %H:%M:%S") if self.due_date else None
         }
  # Create the database tables:   
 with app.app_context():
@@ -64,68 +64,70 @@ with app.app_context():
 @app.route('/')
 
 def home():
-    return "TIDE NOW"
+    tasks= Task.query.order_by(Task.created_at).all()
+    return render_template('index.html', tasks= tasks)
 
 # creat Task.
 #  endpoint to create a new task using POst and Json input.
-@app.route('/api/tasks', methods = ['POST'])
+@app.route('/api/tasks', methods=['GET', 'POST'])
 def create_task():
-    # Get Json data from the incoming request.
-    data = request.get_json()
-    # validate that the required field 'title' is provided.
-    if not data or not data.get('title'):
-        return jsonify({'error': 'Title is required'}), 400
+    if request.method == 'POST':
+        try:
+            if request.is_json:  # Check if it's a JSON request
+                data = request.get_json()
+                title = data.get('title')
+                description = data.get('description')
+            else:  # For regular form data
+                title = request.form.get('title')
+                description = request.form.get('description')
 
-    # create a new Task instance with data from the request.
-    new_task = Task(
-        title = data['title'],
-        description= data.get('description'),
-        completed= data.get('completed', False)
-    )
-    # add the new task to the database session.
-    db.session.add(new_task)
-    db.session.commit()
+            # Debug logging
+            print(f"Title: {title}, Description: {description}")
 
-    return jsonify({'message': 'Task created', 'task': new_task.to_dict()}), 201
+            # Validate that the required field 'title' is provided
+            if title:
+                new_task = Task(
+                    title=title,
+                    description=description,
+                    completed=False,
+                    created_at=datetime.utcnow()
+                )
+                db.session.add(new_task)
+                db.session.commit()
 
-#  list Tasks
-# Endpoint to list all tasks. uses GET and returns JSON data.
+                # Return JSON for Postman or redirect to homepage for form submission
+                if request.is_json:
+                    return jsonify({'message': 'Task created', 'task': new_task.to_dict()}), 201
+                else:
+                    return redirect(url_for('home'))
+            else:
+                # Title is required
+                return jsonify({'error': 'Title is required'}), 400
+        except Exception as e:
+            print(f"Error: {e}")
+            return jsonify({'error': 'Something went wrong'}), 500
+    
+    # Handle GET request
+    if request.is_json:
+        tasks = Task.query.order_by(Task.created_at.desc()).all()
+        return jsonify([task.to_dict() for task in tasks])
+    else:
+        tasks = Task.query.order_by(Task.created_at.desc()).all()
+        return render_template('index.html', tasks=tasks)
 
-@app.route('/api/tasks', methods= ['GET'])
-def list_tasks():
-    # Query all tasks from the database.
-    tasks = Task.query.all()
-    #  Convert all task to a list of dictionaries.
-    tasks_list = [task.to_dict() for task in tasks]
-    return jsonify(tasks_list), 200
-
-
-# -----------------------------------------------------------------------------
-# GET Single Task
-# -----------------------------------------------------------------------------
-# This endpoint retrieves a single task based on the provided task ID.
-@app.route('/api/tasks/<int:task_id>', methods=['GET'])
-def get_task(task_id):
-    # Query the task by ID; if not found, Flask will return a 404 error.
+@app.route('/edit-task/<int:task_id>', methods=['GET', 'POST'])
+def edit_task(task_id):
     task = Task.query.get_or_404(task_id)
-    # Return the task as a JSON response.
-    return jsonify(task.to_dict()), 200
 
-# -----------------------------------------------------------------------------
-# For testing purposes, here's an endpoint that adds a sample task:
-# -----------------------------------------------------------------------------
-@app.route('/add-task', methods=['GET'])
-def add_task():
-    # Create a new task instance with sample data.
-    new_task = Task(
-        title="Learn Flask",
-        description="Understand how to build a web app with Flask and SQLAlchemy"
-    )
-    # Add the new task to the database session.
-    db.session.add(new_task)
-    # Commit the session to save the task in the database.
-    db.session.commit()
-    return "New Task Added", 201
+    if request.method == 'POST':
+        task.title = request.form.get('title')
+        task.description = request.form.get('description')
+        task.completed = True if request.form.get('completed') else False
+
+        db.session.commit()
+        return redirect(url_for('home'))
+
+    return render_template('edit_task.html', task=task)
 
 # update Task
 #  Endpoint to update an existing task.
