@@ -1,9 +1,14 @@
 from flask import Flask , request , jsonify , render_template, redirect,url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from flask_cors import CORS 
+
+
 
 app= Flask(__name__)
 
+
+CORS(app)
 # ------------------------------------------------
 # Configuration for the database:
 # ------------------------------------------------
@@ -43,9 +48,7 @@ class Task(db.Model):
 # Special method to return a string representation of a Task object.
     def __repr__(self):
         return f'<Task {self.title}>'
-    
-
-#  method to convert a task object to a dictionary.
+    #  method to convert a task object to a dictionary.
 
     def to_dict(self):
         return{
@@ -56,16 +59,29 @@ class Task(db.Model):
             'created_at': self.created_at.strftime("%Y-%m-%d %H:%M:%S") if self.created_at else None,
             'due_date': self.due_date.strftime("%Y-%m-%d %H:%M:%S") if self.due_date else None
         }
+# 👇 This is the route you need
+@app.route("/", methods=["GET", "POST"])
+def home():
+    if request.method == "POST":
+        title = request.form.get("title")
+        description = request.form.get("description")
+
+        new_task = Task(title=title, description=description)
+        db.session.add(new_task)
+        db.session.commit()
+
+        return redirect("/")
+    else:
+        tasks = Task.query.order_by(Task.created_at.desc()).all()
+        return render_template("index.html", tasks=tasks)
+  
+
+
  # Create the database tables:   
 with app.app_context():
     db.create_all()
 
 
-@app.route('/')
-
-def home():
-    tasks= Task.query.order_by(Task.created_at).all()
-    return render_template('index.html', tasks= tasks)
 
 # creat Task.
 #  endpoint to create a new task using POst and Json input.
