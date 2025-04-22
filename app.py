@@ -17,7 +17,8 @@ CORS(app)
 # Here we configure Flask to use a SQLite database file named "app.db".
 # SQLite is a lightweight file-based database; for production, you might choose
 # something like PostgreSQL or MySQL.
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://tide_now_db_user:ZvIOtaUeBk2IfSTDXud98pAyEhJmDZ58@dpg-d03pq72li9vc73ftvml0-a:5432/tide_now_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://tide_now_db_user:ZvIOtaUeBk2IfSTDXud98pAyEhJmDZ58@dpg-d03pq72li9vc73ftvml0-a.frankfurt-postgres.render.com:5432/tide_now_db'
+
 
 # Disable the SQLAlchemy event system which is not needed and uses extra memory.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
