@@ -3,8 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_cors import CORS 
 from waitress import serve
-
-
+from dotenv import load_dotenv
+import os
 
 
 app= Flask(__name__)
@@ -17,17 +17,28 @@ CORS(app)
 # Here we configure Flask to use a SQLite database file named "app.db".
 # SQLite is a lightweight file-based database; for production, you might choose
 # something like PostgreSQL or MySQL.
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://tide_now_db_user:ZvIOtaUeBk2IfSTDXud98pAyEhJmDZ58@dpg-d03pq72li9vc73ftvml0-a.frankfurt-postgres.render.com:5432/tide_now_db'
-
-
+load_dotenv()
+DATABASE_URL = os.getenv('DATABASE_URL')
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable not set!")
 # Disable the SQLAlchemy event system which is not needed and uses extra memory.
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # -----------------------------------------------
 # Initialize the SQLAlchemy extension
 # -----------------------------------------------
 db = SQLAlchemy(app)
 
+# Test the database connection
+with app.app_context():
+    try:
+        db.engine.connect()
+        print("Database connection successful!")
+    except Exception as e:
+        print(f"Error connecting to database: {e}")
+        raise
 
 # -----------------------------------------------------------------------------
 # Define the Task model for the to-do app:
@@ -63,6 +74,10 @@ class Task(db.Model):
             'created_at': self.created_at.strftime("%Y-%m-%d %H:%M:%S") if self.created_at else None,
             'due_date': self.due_date.strftime("%Y-%m-%d %H:%M:%S") if self.due_date else None
         }
+    
+# Create the database tables if they don't already exist
+with app.app_context():
+    db.create_all()
 # 👇 This is the route you need
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -79,12 +94,6 @@ def home():
         tasks = Task.query.order_by(Task.created_at.desc()).all()
         return render_template("index.html", tasks=tasks)
   
-
-
- # Create the database tables:   
-with app.app_context():
-    db.create_all()
-
 
 
 # creat Task.
