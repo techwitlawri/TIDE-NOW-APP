@@ -2,6 +2,8 @@ from flask import Flask , request , jsonify , render_template, redirect,url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_cors import CORS 
+from waitress import serve
+
 
 
 
@@ -15,7 +17,8 @@ CORS(app)
 # Here we configure Flask to use a SQLite database file named "app.db".
 # SQLite is a lightweight file-based database; for production, you might choose
 # something like PostgreSQL or MySQL.
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://tide_now_db_user:ZvIOtaUeBk2IfSTDXud98pAyEhJmDZ58@dpg-d03pq72li9vc73ftvml0-a:5432/tide_now_db'
+
 # Disable the SQLAlchemy event system which is not needed and uses extra memory.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -178,4 +181,4 @@ def delete_task(task_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host= '0.0.0.0', port=5000)
+    serve(app, host= '0.0.0.0', port=5000)
