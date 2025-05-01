@@ -1,6 +1,11 @@
 # TIDE NOW APP
 
-A simple to-do app built with Flask and SQLite.
+A simple to-do app built with Flask and SQLite. A to-do app,that allows users to manage tasks. 
+Users can add, view, update, and delete tasks, 
+as well as mark tasks as complete
+
+live demo: https://tide-now-app.onrender.com/
+
 
 ## 📁 Project Structure
 
